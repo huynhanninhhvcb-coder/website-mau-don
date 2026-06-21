@@ -1484,7 +1484,6 @@
         // ---------- Lưu nháp (localStorage) ----------
         function saveDraft() {
           const data = {};
-          // Lấy tất cả input, select, textarea trong form hỏa táng
           document
             .querySelectorAll(
               "#form-hoa-tang input, #form-hoa-tang select, #form-hoa-tang textarea",
@@ -1525,7 +1524,6 @@
 
         // ---------- Gửi đơn ----------
         function submitForm() {
-          // Thu thập dữ liệu cần thiết
           const data = {};
           document
             .querySelectorAll(
@@ -1538,7 +1536,6 @@
                 data[el.id] = el.value;
               }
             });
-          // Hiển thị popup xác nhận
           const confirmMsg =
             "📤 Bạn có chắc chắn muốn gửi đơn này?\n\n" +
             "Họ tên người khai: " +
@@ -1549,13 +1546,9 @@
             "\n\n" +
             "Thông tin sẽ được gửi đến UBND phường.";
           if (confirm(confirmMsg)) {
-            // Ở đây bạn có thể gửi dữ liệu lên server bằng fetch/AJAX
-            // Ví dụ: fetch('/api/submit', { method: 'POST', body: JSON.stringify(data) })
             alert(
               "✅ Đơn đã được gửi thành công!\n(Hệ thống demo - dữ liệu không thực sự gửi đi)",
             );
-            // Xóa nháp sau khi gửi thành công (tùy chọn)
-            // localStorage.removeItem("hoaTangDraft");
           }
         }
 
@@ -1601,7 +1594,6 @@
         // ---------- Tự động load dữ liệu nháp khi trang tải ----------
         window.addEventListener("DOMContentLoaded", () => {
           loadDraft();
-          // Nếu chưa có dữ liệu, load dữ liệu mẫu
           const saved = localStorage.getItem("hoaTangDraft");
           if (!saved) {
             const sampleData = {
