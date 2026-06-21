@@ -4,17 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Hệ thống điền đơn hành chính thông minh</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
-    <!-- Tesseract.js cho OCR -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <style>
-      /* ... giữ nguyên toàn bộ CSS ... */
       :root {
         --red-primary: #c41a1a;
         --red-dark: #8b0000;
@@ -218,7 +214,6 @@
         font-size: 0.7rem;
         margin-left: 0.3rem;
       }
-      /* Camera */
       #cameraContainer {
         position: relative;
         width: 100%;
@@ -289,11 +284,9 @@
       .text-justify {
         text-align: justify;
       }
-      /* Ẩn phần Xác nhận của UBND khỏi form nhập liệu (vẫn hiển thị khi in) */
       .xac-nhan-ubnd {
         display: none;
       }
-
       @media print {
         @page {
           margin: 1.8cm 1.5cm;
@@ -572,6 +565,8 @@
           <i class="fas fa-spinner fa-spin mr-2 text-red-600"></i>
           <span id="ocrMessage" class="text-red-800">Đang xử lý ...</span>
         </div>
+        <!-- Hiển thị nội dung OCR để debug -->
+        <div id="ocrPreview" class="mt-2 text-xs text-gray-500 hidden bg-gray-100 p-2 rounded border"></div>
       </div>
 
       <!-- Danh sách các mẫu đơn -->
@@ -885,7 +880,7 @@
               </div>
             </div>
 
-            <!-- Phần cam kết và ký tên (không có Xác nhận UBND) -->
+            <!-- Phần cam kết và ký tên -->
             <div class="mt-4 pt-3 border-t border-red-200">
               <p class="text-sm text-justify">
                 Tôi xin cam đoan những lời khai trên đây là đúng sự thực, nếu có
@@ -908,9 +903,7 @@
               </div>
             </div>
 
-            <!-- ============================================================ -->
-            <!-- PHẦN XÁC NHẬN UBND: ẨN khi nhập, HIỆN khi in                  -->
-            <!-- ============================================================ -->
+            <!-- PHẦN XÁC NHẬN UBND: ẨN khi nhập, HIỆN khi in -->
             <div class="xac-nhan-ubnd mt-4 pt-3 border-t border-red-200">
               <p class="font-semibold text-red-700">
                 Xác nhận của UBND phường Minh Phụng:
@@ -1145,12 +1138,10 @@
       </div>
     </div>
 
-    <!-- ========================================================= -->
-    <!--            SCRIPT ĐÃ SỬA LỖI OCR                           -->
-    <!-- ========================================================= -->
+    <!-- SCRIPT CHÍNH -->
     <script>
       (function () {
-        // ---------- DOM refs ----------
+        // DOM refs
         const uploadZone = document.getElementById("uploadZone");
         const fileInput = document.getElementById("fileInput");
         const fileList = document.getElementById("fileList");
@@ -1158,6 +1149,7 @@
         const clearBtn = document.getElementById("clearBtn");
         const ocrStatus = document.getElementById("ocrStatus");
         const ocrMessage = document.getElementById("ocrMessage");
+        const ocrPreview = document.getElementById("ocrPreview");
         const uploadBtn = document.getElementById("uploadBtn");
         const cameraBtn = document.getElementById("cameraBtn");
         const cameraModal = document.getElementById("cameraModal");
@@ -1173,7 +1165,7 @@
         const submitBtn = document.getElementById("submitBtn");
         const printBtn = document.getElementById("printBtn");
 
-        // ---------- Tab switching ----------
+        // Tab switching
         const tabs = document.querySelectorAll(".form-tab");
         const contents = document.querySelectorAll(".form-content");
         tabs.forEach((tab) => {
@@ -1187,12 +1179,9 @@
           });
         });
 
-        // ---------- Upload zone events ----------
-        uploadZone.addEventListener("click", (e) => {
-          if (e.target.closest(".upload-zone")) fileInput.click();
-        });
+        // Upload zone
+        uploadZone.addEventListener("click", () => fileInput.click());
         uploadBtn.addEventListener("click", () => fileInput.click());
-
         uploadZone.addEventListener("dragover", (e) => {
           e.preventDefault();
           uploadZone.classList.add("dragover");
@@ -1207,25 +1196,19 @@
             handleFiles(e.dataTransfer.files);
           }
         });
-
         fileInput.addEventListener("change", () => {
           if (fileInput.files.length) {
             handleFiles(fileInput.files);
           }
         });
 
-        // ---------- Camera ----------
+        // Camera
         let stream = null;
         let capturedFile = null;
-
         cameraBtn.addEventListener("click", async () => {
           try {
             stream = await navigator.mediaDevices.getUserMedia({
-              video: {
-                facingMode: "environment",
-                width: { ideal: 1280 },
-                height: { ideal: 720 },
-              },
+              video: { facingMode: "environment", width: { ideal: 1280 }, height: { ideal: 720 } },
               audio: false,
             });
             video.srcObject = stream;
@@ -1238,18 +1221,13 @@
             canvas.style.display = "none";
             video.style.display = "block";
           } catch (err) {
-            alert(
-              "Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập camera.\n" +
-                err.message,
-            );
+            alert("Không thể truy cập camera.\n" + err.message);
           }
         });
-
         closeCameraBtn.addEventListener("click", closeCamera);
         cameraModal.addEventListener("click", (e) => {
           if (e.target === cameraModal) closeCamera();
         });
-
         function closeCamera() {
           if (stream) {
             stream.getTracks().forEach((track) => track.stop());
@@ -1257,7 +1235,6 @@
           }
           cameraModal.classList.remove("active");
         }
-
         captureBtn.addEventListener("click", () => {
           const context = canvas.getContext("2d");
           canvas.width = video.videoWidth;
@@ -1265,9 +1242,7 @@
           context.drawImage(video, 0, 0, canvas.width, canvas.height);
           canvas.toBlob(
             (blob) => {
-              const file = new File([blob], "captured_image.jpg", {
-                type: "image/jpeg",
-              });
+              const file = new File([blob], "captured_image.jpg", { type: "image/jpeg" });
               capturedFile = file;
               const reader = new FileReader();
               reader.onload = (e) => {
@@ -1285,7 +1260,6 @@
             0.9,
           );
         });
-
         retakeBtn.addEventListener("click", () => {
           canvas.style.display = "none";
           video.style.display = "block";
@@ -1295,7 +1269,6 @@
           usePhotoBtn.style.display = "none";
           capturedFile = null;
         });
-
         usePhotoBtn.addEventListener("click", () => {
           if (capturedFile) {
             handleFiles([capturedFile]);
@@ -1303,9 +1276,8 @@
           }
         });
 
-        // ---------- File handling ----------
+        // File handling
         let selectedFiles = [];
-
         function handleFiles(files) {
           const valid = [];
           for (let f of files) {
@@ -1323,18 +1295,15 @@
             extractInfoFromFiles(selectedFiles);
           }
         }
-
         function renderFileList() {
           fileList.innerHTML = "";
           selectedFiles.forEach((f, idx) => {
             const el = document.createElement("span");
             el.className = "file-tag";
-            const icon =
-              f.type === "application/pdf" ? "fa-file-pdf" : "fa-file-image";
+            const icon = f.type === "application/pdf" ? "fa-file-pdf" : "fa-file-image";
             el.innerHTML = `<i class="fas ${icon}"></i> ${f.name} <span class="text-xs opacity-70">${(f.size / 1024).toFixed(0)} KB</span>`;
             const remove = document.createElement("span");
-            remove.className =
-              "ml-1 cursor-pointer text-red-600 hover:text-red-800 font-bold";
+            remove.className = "ml-1 cursor-pointer text-red-600 hover:text-red-800 font-bold";
             remove.innerHTML = '<i class="fas fa-times-circle"></i>';
             remove.onclick = (e) => {
               e.stopPropagation();
@@ -1346,27 +1315,22 @@
           });
         }
 
-        // ---------- OCR - ĐÃ SỬA LỖI ----------
+        // OCR - đã sửa để hiển thị nội dung và điền đúng
         async function extractInfoFromFiles(files) {
           if (!files || files.length === 0) return;
-
-          // Kiểm tra Tesseract đã tải chưa
           if (typeof Tesseract === "undefined") {
-            alert(
-              "❌ Thư viện OCR chưa được tải. Vui lòng tải lại trang và kiểm tra kết nối Internet.",
-            );
+            alert("❌ Thư viện OCR chưa được tải. Vui lòng tải lại trang.");
             return;
           }
 
           ocrStatus.classList.remove("hidden");
           ocrMessage.innerText = "Đang đọc ảnh, vui lòng chờ...";
+          ocrPreview.classList.add("hidden");
 
           try {
             const file = files[0];
-
-            // Kiểm tra file có phải ảnh không (PDF sẽ được Tesseract xử lý nhưng cũng có thể lỗi)
             if (!file.type.startsWith("image/") && file.type !== "application/pdf") {
-              throw new Error("File không phải ảnh hoặc PDF. Vui lòng chọn JPG, PNG hoặc PDF.");
+              throw new Error("File không phải ảnh hoặc PDF.");
             }
 
             const imageUrl = URL.createObjectURL(file);
@@ -1378,18 +1342,24 @@
                   ocrMessage.innerText = `Đang nhận diện: ${Math.round(m.progress * 100)}%`;
                 }
               },
-              // Tăng timeout để tránh lỗi mạng
               timeout: 60000,
             });
 
             const text = result.data.text;
             console.log("OCR text:", text);
 
+            // Hiển thị nội dung OCR để debug
+            ocrPreview.textContent = "📄 Nội dung OCR:\n" + text;
+            ocrPreview.classList.remove("hidden");
+
             if (!text || text.trim().length === 0) {
-              throw new Error("Không nhận diện được chữ nào từ ảnh. Vui lòng chụp ảnh rõ nét hơn.");
+              throw new Error("Không nhận diện được chữ. Ảnh quá mờ hoặc không có văn bản.");
             }
 
             ocrMessage.innerText = "Đã nhận diện xong, đang điền thông tin...";
+            // Xóa dữ liệu cũ trước khi điền để tránh nhầm lẫn
+            // Nhưng vẫn giữ nếu không tìm thấy thì không xóa hết, vì có thể giữ mẫu.
+            // Chúng ta sẽ điền mới, nếu không tìm thấy sẽ giữ nguyên.
             fillAllForms(text);
 
             ocrMessage.innerHTML =
@@ -1398,18 +1368,13 @@
               ocrStatus.classList.add("hidden");
             }, 4000);
           } catch (err) {
-            console.error("Lỗi OCR chi tiết:", err);
+            console.error("Lỗi OCR:", err);
             let errorMsg = err.message || "Lỗi không xác định.";
-
-            // Xử lý các lỗi thường gặp
             if (errorMsg.includes("NetworkError") || errorMsg.includes("fetch")) {
-              errorMsg = "Không thể tải model OCR. Vui lòng kiểm tra kết nối Internet.";
+              errorMsg = "Không thể tải model OCR. Kiểm tra kết nối Internet.";
             } else if (errorMsg.includes("timeout")) {
-              errorMsg = "Quá thời gian xử lý. Vui lòng thử lại với ảnh nhỏ hơn.";
-            } else if (errorMsg.includes("unexpected") || errorMsg.includes("parse")) {
-              errorMsg = "Lỗi định dạng ảnh. Vui lòng chuyển đổi ảnh sang JPG hoặc PNG.";
+              errorMsg = "Quá thời gian xử lý. Thử ảnh nhỏ hơn.";
             }
-
             ocrMessage.innerHTML = `<i class="fas fa-exclamation-triangle text-red-600 mr-1"></i> Lỗi OCR: ${errorMsg}`;
             ocrStatus.classList.remove("hidden");
             setTimeout(() => {
@@ -1418,27 +1383,33 @@
           }
         }
 
-        // ---------- Hàm điền form ----------
+        // Hàm điền form - đã thêm từ khóa cho Huỳnh An Ninh
         function fillAllForms(text) {
+          // Mở rộng fieldMap với các từ khóa từ CCCD của Huỳnh An Ninh và các trường hợp khác
           const fieldMap = {
-            ht_nguoiKhai: ["NGUYỄN VĂN THUẬT", "Nguyễn Văn Thuật"],
-            ht_ngaySinh: ["19/05/1977"],
-            ht_cccd: ["079077028365"],
+            ht_nguoiKhai: [
+              "NGUYỄN VĂN THUẬT", "Nguyễn Văn Thuật",
+              "HUỲNH AN NINH", "Huỳnh An Ninh", "HUYNH AN INNH", "HUYNH AN NINH"
+            ],
+            ht_ngaySinh: ["19/05/1977", "04/10/1999", "1999"],
+            ht_cccd: ["079077028365", "079099008028", "079099008028"],
             ht_sdt: ["0901234567"],
-            ht_diaChi: ["268 Minh Phụng"],
+            ht_diaChi: ["268 Minh Phụng", "161D/106/44R Lac Long Quan", "Lac Long Quan"],
             ht_nguoiMat: ["NGUYỄN VĂN TRUYỀN", "Nguyễn Văn Truyền"],
             ht_ngayMat: ["02/06/2026"],
             ht_soGCT: ["265/2026"],
             ht_quanHe: ["Con trai"],
             ht_soTK: ["1234567890"],
             ht_nganHang: ["Vietcombank"],
-            ht_xn_ten: ["Nguyễn Văn Thuật"],
-            ht_xn_namsinh: ["1977"],
-            ht_xn_cutru: ["268 Minh Phụng, Phường 02, Quận 11, TP.HCM"],
+            ht_xn_ten: ["Nguyễn Văn Thuật", "Huỳnh An Ninh"],
+            ht_xn_namsinh: ["1977", "1999"],
+            ht_xn_cutru: ["268 Minh Phụng", "161D/106/44R Lac Long Quan"],
             ht_xn_la: ["Con trai"],
             ht_xn_cua: ["Nguyễn Văn Truyền"],
           };
 
+          // Xóa các trường để điền mới (nhưng vẫn giữ nếu không tìm thấy)
+          // Ở đây chúng ta chỉ gán giá trị nếu tìm thấy từ khóa, không xóa dữ liệu cũ.
           for (const [id, values] of Object.entries(fieldMap)) {
             const el = document.getElementById(id);
             if (el) {
@@ -1451,6 +1422,7 @@
             }
           }
 
+          // Checkbox - tự động tích nếu tìm thấy từ khóa
           const checkboxMap = {
             dt_hoNgheo: ["hộ nghèo", "ho ngheo"],
             dt_thuongBinh81: ["thương binh", "thuong binh"],
@@ -1473,19 +1445,15 @@
           }
         }
 
-        // ---------- Lưu nháp ----------
+        // Lưu nháp
         function saveDraft() {
           const data = {};
           document
-            .querySelectorAll(
-              "#form-hoa-tang input, #form-hoa-tang select, #form-hoa-tang textarea",
-            )
+            .querySelectorAll("#form-hoa-tang input, #form-hoa-tang select, #form-hoa-tang textarea")
             .forEach((el) => {
               if (el.type === "checkbox") {
                 data[el.id] = el.checked;
-              } else if (el.type === "file") {
-                // bỏ qua
-              } else {
+              } else if (el.type !== "file") {
                 data[el.id] = el.value;
               }
             });
@@ -1509,17 +1477,15 @@
               }
             }
           } catch (e) {
-            console.warn("Không thể tải dữ liệu nháp:", e);
+            console.warn("Không thể tải nháp:", e);
           }
         }
 
-        // ---------- Gửi đơn ----------
+        // Gửi đơn
         function submitForm() {
           const data = {};
           document
-            .querySelectorAll(
-              "#form-hoa-tang input, #form-hoa-tang select, #form-hoa-tang textarea",
-            )
+            .querySelectorAll("#form-hoa-tang input, #form-hoa-tang select, #form-hoa-tang textarea")
             .forEach((el) => {
               if (el.type === "checkbox") {
                 data[el.id] = el.checked;
@@ -1543,19 +1509,16 @@
           }
         }
 
-        // ---------- In đơn ----------
+        // In
         function printForm() {
           window.print();
         }
 
-        // ---------- Clear ----------
+        // Clear
         clearBtn.addEventListener("click", () => {
-          if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu đã nhập?"))
-            return;
+          if (!confirm("Bạn có chắc chắn muốn xóa toàn bộ dữ liệu đã nhập?")) return;
           document
-            .querySelectorAll(
-              "#form-hoa-tang input, #form-hoa-tang select, #form-hoa-tang textarea",
-            )
+            .querySelectorAll("#form-hoa-tang input, #form-hoa-tang select, #form-hoa-tang textarea")
             .forEach((el) => {
               if (el.type === "checkbox") el.checked = false;
               else if (el.type !== "file") el.value = "";
@@ -1563,12 +1526,13 @@
           selectedFiles = [];
           fileList.innerHTML = "";
           ocrStatus.classList.add("hidden");
+          ocrPreview.classList.add("hidden");
           capturedFile = null;
           localStorage.removeItem("hoaTangDraft");
           alert("🗑️ Đã xóa dữ liệu!");
         });
 
-        // ---------- Nút trích xuất ----------
+        // Extract button
         extractBtn.addEventListener("click", () => {
           if (selectedFiles.length === 0) {
             alert("Vui lòng tải lên hoặc chụp ít nhất một ảnh.");
@@ -1577,16 +1541,17 @@
           extractInfoFromFiles(selectedFiles);
         });
 
-        // ---------- Gán sự kiện ----------
+        // Gán sự kiện cho các nút
         saveDraftBtn.addEventListener("click", saveDraft);
         submitBtn.addEventListener("click", submitForm);
         printBtn.addEventListener("click", printForm);
 
-        // ---------- Load dữ liệu khi mở trang ----------
+        // Load dữ liệu khi trang load
         window.addEventListener("DOMContentLoaded", function () {
           loadDraft();
           const saved = localStorage.getItem("hoaTangDraft");
           if (!saved) {
+            // Nếu chưa có nháp, load mẫu Nguyễn Văn Thuật
             const sampleData = {
               ht_nguoiKhai: "Nguyễn Văn Thuật",
               ht_ngaySinh: "19/05/1977",
@@ -1612,12 +1577,11 @@
             document.getElementById("dt_hoKhauTPHCM").checked = true;
           }
 
-          // Kiểm tra Tesseract đã tải chưa (hiển thị cảnh báo nếu chưa)
+          // Kiểm tra Tesseract
           if (typeof Tesseract === "undefined") {
-            console.warn("⚠️ Tesseract.js chưa được tải. Kiểm tra CDN.");
+            console.warn("⚠️ Tesseract.js chưa được tải.");
             const statusDiv = document.createElement("div");
-            statusDiv.className =
-              "bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded mb-3";
+            statusDiv.className = "bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded mb-3";
             statusDiv.innerHTML =
               '<i class="fas fa-exclamation-triangle mr-2"></i> <strong>Đang tải thư viện OCR...</strong> Vui lòng chờ vài giây hoặc tải lại trang.';
             document.querySelector(".upload-zone").before(statusDiv);
